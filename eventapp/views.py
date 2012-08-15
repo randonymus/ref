@@ -1,7 +1,7 @@
 """ Eventapp views """
 
 from django.shortcuts import render_to_response, get_object_or_404
-from eventapp.models import Event
+from eventapp.models import Event, News, Like
 from django.core.context_processors import csrf
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
@@ -10,13 +10,20 @@ from django.contrib.auth import logout as django_logout
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 
 
 def index(request):
     """ Index """
+    likedobjs = lambda model: [like.content_object for like in
+                        Like.objects.filter(liker=request.user,
+                        content_type=ContentType.objects.get_for_model(model))]
     eventname = request.GET.get('eventname', '')
     res = {
+             'news': News.objects.all(),
+             'likednews': likedobjs(News),
              'events': Event.objects.filter(name__contains=eventname),
+             'likedevents': likedobjs(Event),
              'eventname': eventname,
              'authed': request.user.is_authenticated(),
              'user': request.user
@@ -41,12 +48,24 @@ def logout(request):
 def like(request):
     """ Like """
     try:
-        event = get_object_or_404(Event, id=request.POST['eventid'])
-        event.likers.add(request.user)
-        event.save()
+        if request.POST['model'] == 'event':
+            model = Event
+        elif request.POST['model'] == 'news':
+            model = News
+        else:
+            raise KeyError
+
+        obj = get_object_or_404(model, id=request.POST['objid'])
+        likeobj, created = Like.objects.get_or_create(
+                         content_type=ContentType.objects.get_for_model(model),
+                         object_id=obj.id,
+                         liker=request.user
+                           )
+        if not created:
+            likeobj.delete()
         return HttpResponseRedirect(reverse_lazy('index'))
     except KeyError:
-        return HttpResponse('POST key missing: eventid')
+        return HttpResponse('Bad request')
 
 
 @csrf_protect
