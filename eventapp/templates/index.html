@@ -1,4 +1,4 @@
-{% load url from future %}
+{% load url from future %}{% load liketags %}
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -42,7 +42,7 @@
 						<input type="hidden" name="objid" value="{{ newsitem.id }}" />
 						<input type="hidden" name="model" value="news" />
 
-						<input type="submit" value="{% if newsitem not in likednews %}Like{% else %}Unlike{% endif %}">
+						<input type="submit" value="{% liketext user newsitem %}">
 
 					</form>
 					{% endif %}
@@ -71,7 +71,7 @@
 					<input type="hidden" name="objid" value="{{ event.id }}" />
 					<input type="hidden" name="model" value="event" />
 
-					<input type="submit" value="{% if event not in likedevents %}Like{% else %}Unlike{% endif %}">
+					<input type="submit" value="{% liketext user event %}">
 
 				</form>
 				{% endif %}

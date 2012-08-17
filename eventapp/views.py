@@ -15,19 +15,14 @@ from django.contrib.contenttypes.models import ContentType
 
 def index(request):
     """ Index """
-    likedobjs = lambda model: [like.content_object for like in
-                        Like.objects.filter(liker=request.user,
-                        content_type=ContentType.objects.get_for_model(model))]
     eventname = request.GET.get('eventname', '')
     res = {
              'news': News.objects.all(),
-             'likednews': likedobjs(News),
              'events': Event.objects.filter(name__contains=eventname),
-             'likedevents': likedobjs(Event),
              'eventname': eventname,
              'authed': request.user.is_authenticated(),
              'user': request.user
-             }
+           }
     res.update(csrf(request))
     return render_to_response('templates/index.html', res)
 
