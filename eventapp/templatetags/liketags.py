@@ -5,4 +5,4 @@ register = template.Library()
 
 @register.simple_tag
 def liketext(user, obj):
-    return 'Like' if obj.likes.filter(liker=user).count() == 0 else 'Unlike'
+    return 'Unlike' if obj.likes.filter(liker=user).exists() else 'Like'
